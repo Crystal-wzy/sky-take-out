@@ -6,3 +6,7 @@ sky:
     database: sky_take_out
     username: root
     password: "001106"
+  qiniuoss:
+    access-key: H2NJ7aOTfZQhsgbtMD1Py6LY0bAE4JFEDMwcWeAs
+    secret-key: oVDDRpNkjIqVe4mH295Rc7Frq0_asPFN7tGHQuBP
+    bucket-name: sky-take-out2024
