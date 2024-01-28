@@ -83,7 +83,6 @@ public class DishServiceImpl implements DishService {
      * 批量删除菜品
      * @param ids
      */
-    // TODO for循环多次连接数据库问题优化
     @Override
     @Transactional
     public void deleteBatch(List<Long> ids) {
@@ -104,12 +103,16 @@ public class DishServiceImpl implements DishService {
             }
         }
 
-        for (Long id : ids) {
+        /*for (Long id : ids) {
             //删除菜品表中的菜品数据
             dishMapper.deleteById(id);
             //删除菜品关联的口味数据
             dishFlavorMapper.deleteByDishId(id);
-        }
+        }*/
+        //根据菜品id集合批量删除菜品数据
+        dishMapper.deleteByIds(ids);
+        //根据菜品id集合批量删除关联的口味数据
+        dishFlavorMapper.deleteByDishIds(ids);
     }
 
 }
