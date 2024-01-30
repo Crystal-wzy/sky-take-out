@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -41,6 +42,7 @@ public class SetmealServiceImpl implements SetmealService {
      * @param setmealDTO
      */
     @Override
+    @Transactional
     public void saveWithDish(SetmealDTO setmealDTO) {
         //插入1条套餐数据
         Setmeal setmeal = new Setmeal();
@@ -77,6 +79,7 @@ public class SetmealServiceImpl implements SetmealService {
      * @param ids
      */
     @Override
+    @Transactional
     public void deleteBatch(List<Long> ids) {
         //判断当前套餐是否能够删除——是否在起售中
         for (Long id : ids) {
@@ -98,6 +101,7 @@ public class SetmealServiceImpl implements SetmealService {
      * @return
      */
     @Override
+    @Transactional
     public SetmealVO getByIdWithDish(Long id) {
         //根据id查询套餐数据
         Setmeal setmeal = setmealMapper.getById(id);
@@ -108,5 +112,27 @@ public class SetmealServiceImpl implements SetmealService {
         BeanUtils.copyProperties(setmeal, setmealVO);
         setmealVO.setSetmealDishes(setmealDishes);
         return setmealVO;
+    }
+
+    /**
+     * 修改套餐
+     * @param setmealDTO
+     */
+    @Override
+    public void updateWithDish(SetmealDTO setmealDTO) {
+        //修改套餐数据
+        Setmeal setmeal = new Setmeal();
+        BeanUtils.copyProperties(setmealDTO, setmeal);
+        setmealMapper.update(setmeal);
+        //修改套餐关联的菜品数据——删除老的菜品数据
+        setmealDishMapper.deleteBySetmealId(setmeal.getId());
+        //修改套餐关联的菜品数据——插入新的菜品数据
+        List<SetmealDish> setmealDishes = setmealDTO.getSetmealDishes();
+        if(setmealDishes != null && setmealDishes.size() > 0) {
+            for (SetmealDish setmealDish : setmealDishes) {
+                setmealDish.setSetmealId(setmeal.getId());
+            }
+            setmealDishMapper.insertBatch(setmealDishes);
+        }
     }
 }
