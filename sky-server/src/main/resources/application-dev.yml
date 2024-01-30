@@ -10,3 +10,7 @@ sky:
     access-key: H2NJ7aOTfZQhsgbtMD1Py6LY0bAE4JFEDMwcWeAs
     secret-key: oVDDRpNkjIqVe4mH295Rc7Frq0_asPFN7tGHQuBP
     bucket-name: sky-take-out2024
+  redis:
+    host: localhost
+    port: 6379
+    database: 0
