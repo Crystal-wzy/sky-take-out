@@ -119,6 +119,7 @@ public class SetmealServiceImpl implements SetmealService {
      * @param setmealDTO
      */
     @Override
+    @Transactional
     public void updateWithDish(SetmealDTO setmealDTO) {
         //修改套餐数据
         Setmeal setmeal = new Setmeal();
@@ -134,5 +135,19 @@ public class SetmealServiceImpl implements SetmealService {
             }
             setmealDishMapper.insertBatch(setmealDishes);
         }
+    }
+
+    /**
+     * 套餐起售、停售
+     * @param status
+     * @param id
+     */
+    @Override
+    public void startOrStop(Integer status, Long id) {
+        Setmeal setmeal = Setmeal.builder()
+                                 .id(id)
+                                 .status(status)
+                                 .build();
+        setmealMapper.update(setmeal);
     }
 }
