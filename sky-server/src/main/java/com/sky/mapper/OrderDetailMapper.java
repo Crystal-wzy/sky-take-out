@@ -18,4 +18,5 @@ public interface OrderDetailMapper {
      * @param orderDetailList
      */
     void insertBatch(List<OrderDetail> orderDetailList);
+
 }
