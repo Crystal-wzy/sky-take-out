@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.sky.constant.MessageConstant;
+import com.sky.constant.StatusConstant;
 import com.sky.context.BaseContext;
 import com.sky.dto.OrdersPageQueryDTO;
 import com.sky.dto.OrdersPaymentDTO;
@@ -28,6 +29,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @Description
@@ -249,6 +251,27 @@ public class OrderServiceImpl implements OrderService {
         order_new.setCancelReason("用户取消");
         order_new.setCancelTime(LocalDateTime.now());
         orderMapper.update(order_new);
+    }
+
+    /**
+     * 再来一单
+     * @param id
+     */
+    @Override
+    public void repeat(Long id) {
+        Long userId = BaseContext.getCurrentId();
+        //查询订单明细数据
+        List<OrderDetail> orderDetailList = orderDetailMapper.getByOrderId(id);
+        //将订单详情对象转换为购物车对象
+        List<ShoppingCart> shoppingCartList = orderDetailList.stream().map((orderDetail) -> {
+            ShoppingCart shoppingCart = new ShoppingCart();
+            BeanUtils.copyProperties(orderDetail, shoppingCart);
+            shoppingCart.setUserId(userId);
+            shoppingCart.setCreateTime(LocalDateTime.now());
+            return shoppingCart;
+        }).collect(Collectors.toList());
+        //将购物车对象批量添加到购物车
+        shoppingCartMapper.insertBatch(shoppingCartList);
     }
 
 }
