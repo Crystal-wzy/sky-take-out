@@ -15,7 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 /**
  * @Description
@@ -66,10 +65,23 @@ public class OrderController {
      */
     @GetMapping("/historyOrders")
     @ApiOperation("历史订单查询")
-    public Result<PageResult> historyOrders(OrdersPageQueryDTO ordersPageQueryDTO) {
+    public Result<PageResult> historyOrdersQuery(OrdersPageQueryDTO ordersPageQueryDTO) {
         log.info("历史订单查询：{}", ordersPageQueryDTO);
         PageResult pageResult = orderService.pageQuery(ordersPageQueryDTO);
         return Result.success(pageResult);
+    }
+
+    /**
+     * 查询订单详情
+     * @param id
+     * @return
+     */
+    @GetMapping("/orderDetail/{id}")
+    @ApiOperation("查询订单详情")
+    public Result<OrderVO> orderDetailQuery(@PathVariable Long id) {
+        log.info("查询订单详情：{}", id);
+        OrderVO orderVO = orderService.getById(id);
+        return Result.success(orderVO);
     }
 
 }
