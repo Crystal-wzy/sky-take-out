@@ -5,6 +5,7 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.sky.constant.MessageConstant;
 import com.sky.context.BaseContext;
+import com.sky.dto.OrdersConfirmDTO;
 import com.sky.dto.OrdersPageQueryDTO;
 import com.sky.dto.OrdersPaymentDTO;
 import com.sky.dto.OrdersSubmitDTO;
@@ -187,12 +188,12 @@ public class OrderServiceImpl implements OrderService {
         long total = page.getTotal();
         List<OrderVO> records = new ArrayList<>();
         if(page != null && total > 0) {
-            page.forEach(order -> {
+            page.forEach(orders -> {
                 //查询订单明细数据
-                Long orderId = order.getId();
+                Long orderId = orders.getId();
                 List<OrderDetail> orderDetailList = orderDetailMapper.getByOrderId(orderId);
                 OrderVO orderVO = new OrderVO();
-                BeanUtils.copyProperties(order, orderVO);
+                BeanUtils.copyProperties(orders, orderVO);
                 orderVO.setOrderDetailList(orderDetailList);
                 records.add(orderVO);
             });
@@ -207,10 +208,10 @@ public class OrderServiceImpl implements OrderService {
      */
     @Override
     public OrderVO getById(Long id) {
-        Orders order = orderMapper.getById(id);
+        Orders orders = orderMapper.getById(id);
         List<OrderDetail> orderDetailList = orderDetailMapper.getByOrderId(id);
         OrderVO orderVO = new OrderVO();
-        BeanUtils.copyProperties(order, orderVO);
+        BeanUtils.copyProperties(orders, orderVO);
         orderVO.setOrderDetailList(orderDetailList);
         return orderVO;
     }
@@ -221,19 +222,19 @@ public class OrderServiceImpl implements OrderService {
      */
     @Override
     public void cancelById(Long id) {
-        Orders order = orderMapper.getById(id);
-        if(order == null) {
+        Orders ordersDB = orderMapper.getById(id);
+        if(ordersDB == null) {
             throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
         }
         //订单状态 1待付款 2待接单 3已接单 4派送中 5已完成 6已取消
-        if(order.getStatus() > 2) {
+        if(ordersDB.getStatus() > 2) {
             throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
         }
         //修改订单数据
-        Orders order_new = new Orders();
-        order_new.setId(id);
+        Orders orders = new Orders();
+        orders.setId(id);
         //订单处于待接单的状态下取消，需要进行退款
-        if (order.getStatus().equals(Orders.TO_BE_CONFIRMED)) {
+        if (ordersDB.getStatus().equals(Orders.TO_BE_CONFIRMED)) {
             //调用微信支付退款接口
             /*weChatPayUtil.refund(
                     orderDB.getNumber(),
@@ -242,13 +243,13 @@ public class OrderServiceImpl implements OrderService {
                     orders.getAmount()
             );*/
             //支付状态修改为 退款
-            order_new.setPayStatus(Orders.REFUND);
+            orders.setPayStatus(Orders.REFUND);
         }
         //更新订单状态，取消原因、时间
-        order_new.setStatus(Orders.CANCELLED);
-        order_new.setCancelReason("用户取消");
-        order_new.setCancelTime(LocalDateTime.now());
-        orderMapper.update(order_new);
+        orders.setStatus(Orders.CANCELLED);
+        orders.setCancelReason("用户取消");
+        orders.setCancelTime(LocalDateTime.now());
+        orderMapper.update(orders);
     }
 
     /**
@@ -284,11 +285,11 @@ public class OrderServiceImpl implements OrderService {
         long total = page.getTotal();
         List<OrderVO> records = new ArrayList<>();
         if(page != null && total > 0) {
-            page.forEach(order -> {
+            page.forEach(orders -> {
                 //查询订单明细数据
                 OrderVO orderVO = new OrderVO();
-                BeanUtils.copyProperties(order, orderVO);
-                String orderDishes = getOrderDishes(order);
+                BeanUtils.copyProperties(orders, orderVO);
+                String orderDishes = getOrderDishes(orders);
                 orderVO.setOrderDishes(orderDishes);
                 records.add(orderVO);
             });
@@ -313,6 +314,19 @@ public class OrderServiceImpl implements OrderService {
         orderStatisticsVO.setConfirmed(confirmed);
         orderStatisticsVO.setDeliveryInProgress(deleveryInProgress);
         return orderStatisticsVO;
+    }
+
+    /**
+     * 接单
+     * @param ordersConfirmDTO
+     */
+    @Override
+    public void confirm(OrdersConfirmDTO ordersConfirmDTO) {
+        Orders orders = Orders.builder()
+                .id(ordersConfirmDTO.getId())
+                .status(Orders.CONFIRMED)
+                .build();
+        orderMapper.update(orders);
     }
 
     /**
