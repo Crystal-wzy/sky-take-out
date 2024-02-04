@@ -232,10 +232,10 @@ public class OrderServiceImpl implements OrderService {
         if (ordersDB.getStatus().equals(Orders.TO_BE_CONFIRMED)) {
             //调用微信支付退款接口
             /*weChatPayUtil.refund(
-                    orderDB.getNumber(),
-                    orderDB.getNumber(),
-                    orders.getAmount(),
-                    orders.getAmount()
+                    ordersDB.getNumber(),
+                    ordersDB.getNumber(),
+                    ordersDB.getAmount(),
+                    ordersDB.getAmount()
             );*/
             //支付状态修改为 退款
             orders.setPayStatus(Orders.REFUND);
@@ -389,6 +389,24 @@ public class OrderServiceImpl implements OrderService {
         orders.setStatus(Orders.CANCELLED);
         orders.setCancelReason(ordersCancelDTO.getCancelReason());
         orders.setCancelTime(LocalDateTime.now());
+        orderMapper.update(orders);
+    }
+
+    /**
+     * 派送订单
+     * @param id
+     */
+    @Override
+    public void delivery(Long id) {
+        Orders ordersDB = orderMapper.getById(id);
+        Orders orders = new Orders();
+        orders.setId(id);
+        //只有当订单为已接单待派送状态才能拒单
+        if(ordersDB == null || !ordersDB.getStatus().equals(Orders.CONFIRMED)) {
+            throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
+        }
+        //更新订单状态，状态转为派送中
+        orders.setStatus(Orders.DELIVERY_IN_PROGRESS);
         orderMapper.update(orders);
     }
 
