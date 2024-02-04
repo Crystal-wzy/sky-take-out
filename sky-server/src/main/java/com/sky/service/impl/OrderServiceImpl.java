@@ -405,7 +405,7 @@ public class OrderServiceImpl implements OrderService {
         if(ordersDB == null || !ordersDB.getStatus().equals(Orders.CONFIRMED)) {
             throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
         }
-        //更新订单状态，状态转为派送中
+        //修改订单数据，更新订单状态
         orders.setStatus(Orders.DELIVERY_IN_PROGRESS);
         orderMapper.update(orders);
     }
@@ -428,6 +428,25 @@ public class OrderServiceImpl implements OrderService {
     }
 
     /**
+     * 完成订单
+     * @param id
+     */
+    @Override
+    public void complete(Long id) {
+        Orders ordersDB = orderMapper.getById(id);
+        Orders orders = new Orders();
+        orders.setId(id);
+        //只有当订单为已派送状态才能完成订单
+        if(ordersDB == null || !ordersDB.getStatus().equals(Orders.DELIVERY_IN_PROGRESS)) {
+            throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
+        }
+        //修改订单数据，更新订单状态，送达时间
+        orders.setStatus(Orders.COMPLETED);
+        orders.setDeliveryTime(LocalDateTime.now());
+        orderMapper.update(orders);
+    }
+
+    /**
      * 根据订单id获取菜品信息字符串
      * @param order
      * @return
@@ -436,11 +455,11 @@ public class OrderServiceImpl implements OrderService {
         //查询订单菜品详情信息（订单中的菜品和数量）
         List<OrderDetail> orderDetailList = orderDetailMapper.getByOrderId(order.getId());
         //将每一条订单菜品信息拼接为字符串（格式：宫保鸡丁*3；）
-        List<String> ordewrDishList = orderDetailList.stream().map(orderDetail ->
+        List<String> orderDishList = orderDetailList.stream().map(orderDetail ->
                 orderDetail.getName() + "*" + orderDetail.getNumber() + ";")
                 .collect(Collectors.toList());
         //将该订单对应的所有菜品信息拼接在一起
-        return String.join("", ordewrDishList);
+        return String.join("", orderDishList);
     }
 
 }
