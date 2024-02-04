@@ -274,4 +274,44 @@ public class OrderServiceImpl implements OrderService {
         shoppingCartMapper.insertBatch(shoppingCartList);
     }
 
+    /**
+     * 条件查询
+     * @param ordersPageQueryDTO
+     * @return
+     */
+    @Override
+    public PageResult conditionSearch(OrdersPageQueryDTO ordersPageQueryDTO) {
+        PageHelper.startPage(ordersPageQueryDTO.getPage(), ordersPageQueryDTO.getPageSize());
+        Page<Orders> page = orderMapper.pageQuery(ordersPageQueryDTO);
+        long total = page.getTotal();
+        List<OrderVO> records = new ArrayList<>();
+        if(page != null && total > 0) {
+            page.forEach(order -> {
+                //查询订单明细数据
+                OrderVO orderVO = new OrderVO();
+                BeanUtils.copyProperties(order, orderVO);
+                String orderDishes = getOrderDishes(order);
+                orderVO.setOrderDishes(orderDishes);
+                records.add(orderVO);
+            });
+        }
+        return new PageResult(total, records);
+    }
+
+    /**
+     * 根据订单id获取菜品信息字符串
+     * @param order
+     * @return
+     */
+    private String getOrderDishes(Orders order) {
+        //查询订单菜品详情信息（订单中的菜品和数量）
+        List<OrderDetail> orderDetailList = orderDetailMapper.getByOrderId(order.getId());
+        //将每一条订单菜品信息拼接为字符串（格式：宫保鸡丁*3；）
+        List<String> ordewrDishList = orderDetailList.stream().map(orderDetail ->
+                orderDetail.getName() + "*" + orderDetail.getNumber() + ";")
+                .collect(Collectors.toList());
+        //将该订单对应的所有菜品信息拼接在一起
+        return String.join("", ordewrDishList);
+    }
+
 }

@@ -17,22 +17,22 @@
         update orders
         <set>
             <if test="cancelReason != null and cancelReason!=''">
-                cancel_reason=#{cancelReason},
+                cancel_reason = #{cancelReason},
             </if>
             <if test="rejectionReason != null and rejectionReason!=''">
-                rejection_reason=#{rejectionReason},
+                rejection_reason = #{rejectionReason},
             </if>
             <if test="cancelTime != null">
-                cancel_time=#{cancelTime},
+                cancel_time = #{cancelTime},
             </if>
             <if test="payStatus != null">
-                pay_status=#{payStatus},
+                pay_status = #{payStatus},
             </if>
             <if test="payMethod != null">
-                pay_method=#{payMethod},
+                pay_method = #{payMethod},
             </if>
             <if test="checkoutTime != null">
-                checkout_time=#{checkoutTime},
+                checkout_time = #{checkoutTime},
             </if>
             <if test="status != null">
                 status = #{status},
@@ -47,23 +47,23 @@
     <select id="pageQuery" resultType="com.sky.entity.Orders">
         select * from orders
         <where>
-            <if test="number != null">
+            <if test="number != null and number != ''">
                 and number like concat('%', #{number}, '%')
             </if>
             <if test="phone != null and phone != ''">
                 and phone like concat('%', #{phone}, '%')
             </if>
-            <if test="userId!=null and userId != ''">
+            <if test="userId!=null">
                 and user_id = #{userId}
             </if>
-            <if test="status != null and status != ''">
+            <if test="status != null">
                 and status = #{status}
             </if>
-            <if test="beginTime != null and beginTime != ''">
-                and order_time = #{beginTime}
+            <if test="beginTime != null">
+                and order_time &gt;= #{beginTime}
             </if>
-            <if test="endTime != null and endTime != ''">
-                and order_time = #{endTime}
+            <if test="endTime != null">
+                and order_time &lt;= #{endTime}
             </if>
         </where>
         order by order_time desc
