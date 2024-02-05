@@ -43,7 +43,7 @@ public class QiniuOssUtil {
         cfg.resumableUploadAPIVersion = Configuration.ResumableUploadAPIVersion.V2;// 指定分片上传版本
 
         UploadManager uploadManager = new UploadManager(cfg);
-        String key = objectName;
+        String key = "img/"+objectName;
         try {
             InputStream inputStream = new ByteArrayInputStream(bytes);
             Auth auth = Auth.create(accessKey, secretKey);//创建凭证
@@ -67,7 +67,7 @@ public class QiniuOssUtil {
         }
 
         // domainOfBucket 中的域名为用户bucket绑定的下载域名
-        String domainOfBucket = "http://s7ymb7eya.hd-bkt.clouddn.com";
+        String domainOfBucket = "http://s7ymb7eya.hd-bkt.clouddn.com/img";
         String encodedFileName = null;
         try {
             encodedFileName = URLEncoder.encode(objectName, "utf-8").replace("+", "%20");
