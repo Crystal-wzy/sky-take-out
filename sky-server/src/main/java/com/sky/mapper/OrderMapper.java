@@ -1,16 +1,14 @@
 package com.sky.mapper;
 
 import com.github.pagehelper.Page;
-import com.sky.dto.OrdersConfirmDTO;
 import com.sky.dto.OrdersPageQueryDTO;
 import com.sky.entity.Orders;
-import com.sky.vo.OrderStatisticsVO;
-import com.sky.vo.OrderVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * @Description
@@ -39,6 +37,12 @@ public interface OrderMapper {
      */
     void update(Orders orders);
 
+    /**
+     * 批量修改订单信息
+     * @param ordersList
+     */
+    void updateBatch(List<Orders> ordersList);
+
     @Update("update orders set status = #{orderStatus}, pay_status = #{orderPaidStatus}, checkout_time = #{check_out_time} where id = #{id}")
     void updateStatus(Integer orderStatus, Integer orderPaidStatus, LocalDateTime check_out_time, Long id);
 
@@ -63,5 +67,14 @@ public interface OrderMapper {
      */
     @Select("select count(*) from orders where status = #{status}")
     Integer countStatus(Integer ststus);
+
+    /**
+     * 根据订单状态和下单时间查询订单
+     * @param status
+     * @param orderTime
+     * @return
+     */
+    @Select("select * from orders where status = #{status} and order_time < #{orderTime}")
+    List<Orders> getByStatusAndOrderTimeLT(Integer status, LocalDateTime orderTime);
 
 }

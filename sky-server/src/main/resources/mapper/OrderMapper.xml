@@ -44,6 +44,72 @@
         where id = #{id}
     </update>
 
+    <update id="updateBatch" parameterType="java.util.List">
+        update orders
+        <trim prefix="set" suffixOverrides=",">
+            <trim prefix=" cancel_reason = case" suffix="end,">
+                <foreach collection="ordersList" item="od" index="index">
+                    <if test="od.cancelReason != null and od.cancelReason!=''">
+                        when id = #{od.id} then #{od.cancelReason}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix=" rejection_reason = case" suffix="end,">
+                <foreach collection="ordersList" item="od" index="index">
+                    <if test="od.rejectionReason != null and od.rejectionReason!=''">
+                        when id = #{od.id} then #{od.rejectionReason}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix=" cancel_time = case" suffix="end,">
+                <foreach collection="ordersList" item="od" index="index">
+                    <if test="od.cancelTime != null">
+                        when id = #{od.id} then #{od.cancelTime}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix=" pay_status = case" suffix="end,">
+                <foreach collection="ordersList" item="od" index="index">
+                    <if test="od.payStatus != null">
+                        when id = #{od.id} then #{od.payStatus}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix=" pay_method = case" suffix="end,">
+                <foreach collection="ordersList" item="od" index="index">
+                    <if test="od.payMethod != null">
+                        when id = #{od.id} then #{od.payMethod}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix=" checkout_time = case" suffix="end,">
+                <foreach collection="ordersList" item="od" index="index">
+                    <if test="od.checkoutTime != null">
+                        when id = #{od.id} then #{od.checkoutTime}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix=" status = case" suffix="end,">
+                <foreach collection="ordersList" item="od" index="index">
+                    <if test="od.status != null">
+                        when id = #{od.id} then #{od.status}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix=" delivery_time = case" suffix="end,">
+                <foreach collection="ordersList" item="od" index="index">
+                    <if test="od.deliveryTime != null">
+                        when id = #{od.id} then #{od.deliveryTime}
+                    </if>
+                </foreach>
+            </trim>
+        </trim>
+        where id in
+        <foreach collection="ordersList" item="od" separator="," open="(" close=")">
+            #{od.id}
+        </foreach>
+    </update>
+
     <select id="pageQuery" resultType="com.sky.entity.Orders">
         select * from orders
         <where>
