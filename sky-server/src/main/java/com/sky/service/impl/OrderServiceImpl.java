@@ -240,6 +240,7 @@ public class OrderServiceImpl implements OrderService {
         map.put("orderId", this.orders.getId());
         map.put("content", "订单号：" + this.orders.getNumber());
         String json = JSON.toJSONString(map);
+        //通过WebSocket向客户端浏览器推送消息
         webSocketServer.sendToAllClient(json);
         return vo;
     }
@@ -537,6 +538,27 @@ public class OrderServiceImpl implements OrderService {
         orders.setStatus(Orders.COMPLETED);
         orders.setDeliveryTime(LocalDateTime.now());
         orderMapper.update(orders);
+    }
+
+    /**
+     * 用户催单
+     * @param id
+     */
+    @Override
+    public void reminder(Long id) {
+        Orders orders = orderMapper.getById(id);
+        //校验订单是否存在
+        if(orders == null || !orders.getStatus().equals(Orders.TO_BE_CONFIRMED)) {
+            throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
+        }
+        //通过WebSocket向客户端浏览器推送消息type orderId content
+        Map map = new HashMap();
+        map.put("type", 2); //1表示来单提醒 2表示客户催单
+        map.put("orderId", id);
+        map.put("content", "订单号：" + orders.getNumber());
+        String json = JSON.toJSONString(map);
+        //通过WebSocket向客户端浏览器推送消息
+        webSocketServer.sendToAllClient(json);
     }
 
     /**
