@@ -1,10 +1,12 @@
 package com.sky.service.impl;
 
+import com.sky.dto.GoodsSalesDTO;
 import com.sky.entity.Orders;
 import com.sky.mapper.OrderMapper;
 import com.sky.mapper.UserMapper;
 import com.sky.service.ReportService;
 import com.sky.vo.OrderReportVO;
+import com.sky.vo.SalesTop10ReportVO;
 import com.sky.vo.TurnoverReportVO;
 import com.sky.vo.UserReportVO;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +18,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @Description
@@ -151,7 +154,6 @@ public class ReportServiceImpl implements ReportService {
             validOrderCount = validOrderCount == null ? 0 : validOrderCount;
             validOrderCountList.add(validOrderCount);
         }
-
         //订单总数
         Integer totalOrderCount = orderCountList.stream().reduce(Integer::sum).get();
         //有效订单数
@@ -163,6 +165,7 @@ public class ReportServiceImpl implements ReportService {
             orderCompletionRate = validOrderCount.doubleValue() / totalOrderCount;
         }
 
+        //封装返回结果
         OrderReportVO orderReportVO = OrderReportVO.builder()
                 .dateList(StringUtils.join(dateList, ","))
                 .orderCountList(StringUtils.join(orderCountList, ","))
@@ -172,6 +175,29 @@ public class ReportServiceImpl implements ReportService {
                 .orderCompletionRate(orderCompletionRate)
                 .build();
         return orderReportVO;
+    }
+
+    /**
+     * 统计指定时间内的销量排名top10数据
+     * @param begin
+     * @param end
+     * @return
+     */
+    @Override
+    public SalesTop10ReportVO getSalesTop10(LocalDate begin, LocalDate end) {
+        List<GoodsSalesDTO> salesTop10 = orderMapper.getSalesTop10(LocalDateTime.of(begin, LocalTime.MIN),
+                LocalDateTime.of(end, LocalTime.MAX));
+        //nameList集合存放销量排名top10商品名称
+        List<String> nameList = salesTop10.stream().map(GoodsSalesDTO::getName).collect(Collectors.toList());
+        //numberList集合存放商品对应的销量数据
+        List<Integer> numberList = salesTop10.stream().map(GoodsSalesDTO::getNumber).collect(Collectors.toList());
+
+        //封装返回结果
+        SalesTop10ReportVO salesTop10ReportVO = SalesTop10ReportVO.builder()
+                .nameList(StringUtils.join(nameList, ","))
+                .numberList(StringUtils.join(numberList, ","))
+                .build();
+        return salesTop10ReportVO;
     }
 
 
