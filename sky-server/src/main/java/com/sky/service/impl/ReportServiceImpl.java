@@ -4,6 +4,7 @@ import com.sky.entity.Orders;
 import com.sky.mapper.OrderMapper;
 import com.sky.mapper.UserMapper;
 import com.sky.service.ReportService;
+import com.sky.vo.OrderReportVO;
 import com.sky.vo.TurnoverReportVO;
 import com.sky.vo.UserReportVO;
 import lombok.extern.slf4j.Slf4j;
@@ -45,6 +46,7 @@ public class ReportServiceImpl implements ReportService {
             dateList.add(date);
         }
         dateList.add(end);
+
         //turnoverList集合存放每天的营业额
         List<Double> turnoverList = new ArrayList<>();
         for (LocalDate date : dateList) {
@@ -59,6 +61,7 @@ public class ReportServiceImpl implements ReportService {
             turnover = turnover == null ? 0.0 : turnover;
             turnoverList.add(turnover);
         }
+
         //封装返回结果
         TurnoverReportVO turnoverReportVO = TurnoverReportVO.builder()
                 .dateList(StringUtils.join(dateList, ","))
@@ -81,9 +84,10 @@ public class ReportServiceImpl implements ReportService {
             dateList.add(date);
         }
         dateList.add(end);
-        //newUserList集合存放每天的用户数据
+
+        //newUserList集合存放每天的新增用户数
         List<Integer> newUserList = new ArrayList<>();
-        //newUserList集合存放每天的用户数据
+        //totalUserList集合存放总的用户数
         List<Integer> totalUserList = new ArrayList<>();
         for (LocalDate date : dateList) {
             //查询date日期对应的用户数据
@@ -101,6 +105,7 @@ public class ReportServiceImpl implements ReportService {
             newUser = newUser == null ? 0 : newUser;
             newUserList.add(newUser);
         }
+
         //封装返回结果
         UserReportVO userReportVO = UserReportVO.builder()
                 .dateList(StringUtils.join(dateList, ","))
@@ -109,4 +114,65 @@ public class ReportServiceImpl implements ReportService {
                 .build();
         return userReportVO;
     }
+
+    /**
+     * 统计指定时间内的用户数据
+     * @param begin
+     * @param end
+     * @return
+     */
+    @Override
+    public OrderReportVO getOrderStatistics(LocalDate begin, LocalDate end) {
+        //dateList集合用于存放从begin到end范围内的每天的日期
+        List<LocalDate> dateList = new ArrayList<>();
+        for(LocalDate date = begin; !date.equals(end); date = date.plusDays(1)) {
+            dateList.add(date);
+        }
+        dateList.add(end);
+
+        //orderCountList集合存放每天的订单总数
+        List<Integer> orderCountList = new ArrayList<>();
+        //orderCountList集合存放每天的有效订单数
+        List<Integer> validOrderCountList = new ArrayList<>();
+        for (LocalDate date : dateList) {
+            //查询date日期对应的用订单数据
+            LocalDateTime beginDateTime = LocalDateTime.of(date, LocalTime.MIN);
+            LocalDateTime endDateTime = LocalDateTime.of(date, LocalTime.MAX);
+            Map map = new HashMap();
+            map.put("begin", beginDateTime);
+            map.put("end", endDateTime);
+            //查询每天的订单总数
+            Integer orderCount = orderMapper.countByMap(map);
+            orderCount = orderCount == null ? 0 : orderCount;
+            orderCountList.add(orderCount);
+            //查询每天的有效订单数
+            map.put("status", Orders.COMPLETED);
+            Integer validOrderCount = orderMapper.countByMap(map);
+            validOrderCount = validOrderCount == null ? 0 : validOrderCount;
+            validOrderCountList.add(validOrderCount);
+        }
+
+        //订单总数
+        Integer totalOrderCount = orderCountList.stream().reduce(Integer::sum).get();
+        //有效订单数
+        Integer validOrderCount = validOrderCountList.stream().reduce(Integer::sum).get();
+        //订单完成率
+        Double orderCompletionRate = 0.0;
+        if(totalOrderCount != 0) {
+            //计算订单完成率
+            orderCompletionRate = validOrderCount.doubleValue() / totalOrderCount;
+        }
+
+        OrderReportVO orderReportVO = OrderReportVO.builder()
+                .dateList(StringUtils.join(dateList, ","))
+                .orderCountList(StringUtils.join(orderCountList, ","))
+                .validOrderCountList(StringUtils.join(validOrderCountList, ","))
+                .totalOrderCount(totalOrderCount)
+                .validOrderCount(validOrderCount)
+                .orderCompletionRate(orderCompletionRate)
+                .build();
+        return orderReportVO;
+    }
+
+
 }
