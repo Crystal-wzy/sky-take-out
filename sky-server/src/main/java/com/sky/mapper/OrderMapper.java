@@ -79,7 +79,7 @@ public interface OrderMapper {
     List<Orders> getByStatusAndOrderTimeLT(Integer status, LocalDateTime orderTime);
 
     /**
-     * 根据条件统计当日的营业额
+     * 根据条件动态统计营业额数据
      * @param map
      * @return
      */
